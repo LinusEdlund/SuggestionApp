@@ -1,0 +1,147 @@
+﻿@page "/"
+@inject ICategoryData categoryData
+@inject IStatusData statusData
+@inject ISuggestionData suggestionData
+@inject IUserData userData
+@inject NavigationManager navManager
+@inject ProtectedSessionStorage sessionStorage
+@inject AuthenticationStateProvider authProvider
+
+
+
+<h1 class="page-heading text-uppercase mb-4">Training Suggestion</h1>
+<div class="suggestion-container">
+  <button @onclick="LoadCreatePage" class="suggest-btn btn btn-outline-light btn-lg text-uppercase">
+    Suggest
+  </button>
+</div>
+
+<div class="row">
+  <div class="suggestions-count col-md-4 text-light mt-2">@_suggestions?.Count Suggestions</div>
+  <div class="col-md-4 col-xl-5 btn-group">
+    <button class="btn btn-order @SortedByNewClass(true)" @onclick="(() => OrderByNew(true))">New</button>
+    <button class="btn btn-order @SortedByNewClass(false)" @onclick="(() => OrderByNew(false))">Popular</button>
+  </div>
+  <div class="col-md-4 col-xl-3 search-box">
+    <input type="text" placeholder="Search"
+           aria-label="Search box" class="form-control rounded-control"
+    @oninput="((txt) => OnSearchInput((string)txt.Value))" />
+  </div>
+  <div class="col-12 d-block d-md-none">
+    @if (_categories is not null && showCategories)
+    {
+      <div class="categories">
+        <span class="text-uppercase fw-bold">Category</span>
+        <div class="@GetSelectedCategory()" @onclick="(() => OnCategoryClick())">All</div>
+        @foreach (var c in _categories)
+        {
+          <div class="@GetSelectedCategory(c.CategoryName)" @onclick="(() => OnCategoryClick(c.CategoryName))">@c.CategoryName</div>
+        }
+      </div>
+    }
+    else
+    {
+      <div class="categories" @onclick="(() => showCategories = true)">
+        <span class="selected-category">@selectedCategory</span>
+      </div>
+    }
+
+    @if (_statuses is not null && showStatuses)
+    {
+      <div class="statuses">
+        <span class="text-uppercase fw-bold">Status</span>
+        <div class="@GetSelectedStatus()" @onclick="(() => OnStatusClick())">All</div>
+        @foreach (var s in _statuses)
+        {
+          <div class="@GetSelectedStatus(s.StatusName)" @onclick="(() => OnStatusClick(s.StatusName))">@s.StatusName</div>
+        }
+      </div>
+    }
+    else
+    {
+      <div class="statuses" @onclick="(() => showStatuses = true)">
+        <span class="selected-status">@selectedStatus</span>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-8 col-xl-9">
+    @if (_suggestions is not null)
+    {
+      <Virtualize Items="@_suggestions" Context="s" OverscanCount="10">
+        <div class="suggestion-entry">
+          <div class="@GetVoteClass(s)" @onclick="(() => VoteUp(s))">
+            <div class="text-uppercase">@GetUpvoteTopText(s)</div>
+            <span class="oi oi-caret-top" style="font-size: 3rem;"></span>
+            <div class="text-uppercase">@GetUpvoteBottomText(s)</div>
+          </div>
+
+          <div class="suggestion-entry-text">
+            <div class="suggestion-entry-text-title" @onclick="(() => OpenDetails(s))">
+              @s.Suggestion
+            </div>
+            @if (archivingSuggestion is null || archivingSuggestion.Id != s.Id)
+            {
+              <div class="suggestion-entry-bottom">
+                <div class="suggestion-entry-text-category" @onclick="(() => OpenDetails(s))">
+                  @s.Category?.CategoryName
+                </div>
+                <AuthorizeView Roles="Admin">
+                  <button class="btn suggestion-entry-text-category btn-archive" @onclick="(() => archivingSuggestion = s)">archive</button>
+                </AuthorizeView>
+              </div>
+            }
+            else
+            {
+              <div class="suggestion-entry-bottom">
+                <button class="btn btn-archive-confirm" @onclick="ArchiveSuggestion">
+                  confirm
+                </button>
+                <button class="btn btn-archive-reject" @onclick="(() => archivingSuggestion = null)">
+                  cancel
+                </button>
+              </div>
+            }
+          </div>
+
+          <div class="suggestion-entry-status @GetSuggestionStatusClass(s)">
+            <div class="suggestion-entry-status-text">
+              @s.SuggestionStatus?.StatusName
+            </div>
+          </div>
+        </div>
+      </Virtualize>
+    }
+  </div>
+
+  <div class="col-md-4 col-xl-3 d-none d-md-block">
+    @if (_categories is not null)
+    {
+      <div class="categories">
+        <span class="text-uppercase fw-bold">Category</span>
+        <div class="@GetSelectedCategory()" @onclick="(() => OnCategoryClick())">All</div>
+        @foreach (var c in _categories)
+        {
+          <div class="@GetSelectedCategory(c.CategoryName)" @onclick="(() => OnCategoryClick(c.CategoryName))">@c.CategoryName</div>
+        }
+      </div>
+    }
+    @if (_statuses is not null)
+    {
+      <div class="statuses">
+        <span class="text-uppercase fw-bold">Status</span>
+        <div class="@GetSelectedStatus()" @onclick="(() => OnStatusClick())">All</div>
+        @foreach (var s in _statuses)
+        {
+          <div class="@GetSelectedStatus(s.StatusName)" @onclick="(() => OnStatusClick(s.StatusName))">@s.StatusName</div>
+        }
+      </div>
+    }
+  </div>
+</div>
+
+
+
+

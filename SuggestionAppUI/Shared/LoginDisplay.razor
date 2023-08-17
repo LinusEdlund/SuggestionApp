@@ -1,0 +1,14 @@
+﻿<AuthorizeView Roles="Admin">
+    <a class="login-link" href="/AdminApproval">Admin</a>
+</AuthorizeView>
+
+
+<AuthorizeView>
+    <Authorized>
+    <a class="login-link" href="/Profile">Profile</a>
+    <a class="login-link" href="/Identity/Account/Logout">Logout</a>
+    </Authorized>
+    <NotAuthorized>
+    <a class="login-link" href="/Identity/Account/Login">Login</a>
+    </NotAuthorized>
+</AuthorizeView>
